@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Shopfloor QC</title>
+<style>
+:root{
+  /* Accumen brand: #2F4B9F navy-blue + #EC7802 orange */
+  --bg:#f2f4f9;--card:#fff;--card2:#f5f7fb;--card3:#eaecf5;
+  --bd:#d4d8e8;--bd2:#adb5d0;
+  --t:#1a2240;--t2:#2e3d6b;--t3:#6b748f;--t4:#a8afc2;
+  /* Primary = brand navy */
+  --act:#2f4b9f;
+  /* Brand orange — used for in-progress / warnings */
+  --orange:#ec7802;--odim:#fff3e6;--ob:#f5b060;
+  /* Status colors — all derived, not vivid */
+  --green:#2a6448;--gdim:#eaf3ee;--gb:#88baa0;
+  --amber:#ec7802;--adim:#fff3e6;--ab:#f5b060;
+  --red:#8c2a2a;--rdim:#f5eaea;--rb:#c08888;
+  --f:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --m:'Courier New',monospace;
+  --r:6px;--r2:8px;--r3:10px;
+  --sh:0 1px 3px rgba(0,0,0,.06);
+  --sh2:0 3px 10px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:var(--f);background:var(--bg);color:var(--t);font-size:18px;overflow:hidden;min-width:1280px;}
+button,select,input{font-family:var(--f);}
+.app{display:flex;flex-direction:column;height:100vh;max-width:1280px;margin:0 auto;width:1280px;}
+.scr{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.scr.on{display:flex;}
+
+/* TOPBAR */
+/* ── UNIFIED CONTROL BAR ─────────────────────────── */
+.ctrl-bar{display:flex;align-items:center;border-bottom:2px solid var(--bd);background:var(--card);flex-shrink:0;height:60px;padding:0;border-top:4px solid var(--act);}
+
+/* Profile section — right */
+.prf-wrap{display:flex;align-items:center;gap:10px;padding:0 16px;border-left:1px solid var(--bd);height:100%;flex-shrink:0;}
+.offl{display:flex;align-items:center;gap:5px;background:var(--odim);border:1px solid var(--ob);border-radius:var(--r);padding:5px 10px;font-size:12px;font-weight:600;color:var(--orange);}
+.odot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.prf{display:flex;align-items:center;gap:7px;cursor:default;}
+.pav{width:36px;height:36px;border-radius:50%;background:var(--act);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
+.pn{font-size:14px;font-weight:700;line-height:1.2;color:var(--t);}
+.pr{font-size:12px;color:var(--t3);}
+
+/* Tabs — left of bar */
+.tab-wrap{display:flex;align-items:stretch;height:100%;border-right:1px solid var(--bd);flex-shrink:0;}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:0 20px;height:100%;border:none;background:transparent;font-size:15px;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;transition:color .12s,border-color .12s;white-space:nowrap;min-height:60px;}
+.tab-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+.tab-btn.active{color:var(--act);border-bottom-color:var(--act);font-weight:700;}
+.tab-btn:hover:not(.active){color:var(--t2);}
+.tab-badge{font-size:13px;font-weight:700;background:rgba(0,0,0,.07);border-radius:99px;padding:3px 10px;}
+.tab-btn.active .tab-badge{background:var(--bdim,#eaecf5);color:var(--act);}
+/* Ending Soon tab — urgent treatment */
+#tab-near{color:var(--t3);border-left:1px solid var(--bd);margin-left:4px;padding-left:20px;}
+#tab-near.has-alerts{color:#b45800;font-weight:700;background:rgba(236,120,2,.06);}
+#tab-near.has-alerts .near-tab-badge{background:#ec7802;color:#fff;animation:urgentpulse 1.8s ease-in-out infinite;}
+@keyframes urgentpulse{0%,100%{box-shadow:0 0 0 0 rgba(236,120,2,.5)}60%{box-shadow:0 0 0 5px rgba(236,120,2,0)}}
+#tab-near.active{color:#ec7802;border-bottom-color:#ec7802;background:rgba(236,120,2,.06);}
+#tab-near.active .near-tab-badge{background:#ec7802;color:#fff;}
+.near-tab-badge{font-size:13px;font-weight:800;background:rgba(0,0,0,.07);border-radius:99px;padding:2px 9px;transition:background .2s;}
+
+/* Filter row — second bar */
+.filter-row{display:flex;align-items:center;background:var(--card2);border-bottom:2px solid var(--bd);flex-shrink:0;height:48px;padding:0 18px;gap:0;}
+.filter-group{display:flex;align-items:center;gap:5px;}
+.filter-label{font-size:12px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-right:5px;white-space:nowrap;}
+.filter-sep{width:1px;height:22px;background:var(--bd2);margin:0 12px;flex-shrink:0;}
+.filter-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.list-info{font-size:11px;color:var(--t4);white-space:nowrap;}
+.fb{height:40px;padding:0 16px;border-radius:var(--r);border:1px solid var(--bd);background:var(--card);color:var(--t2);font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:all .1s;}
+.fb:hover{background:var(--card3);}
+.fb:active{transform:scale(.97);}
+.fb.active{background:var(--act);border-color:var(--act);color:#fff;font-weight:700;}
+.fb-count{font-size:12px;font-weight:600;background:rgba(0,0,0,.08);border-radius:99px;padding:1px 7px;}
+.fb.active .fb-count{background:rgba(255,255,255,.22);}
+.sort-btn{height:40px;padding:0 16px;border-radius:var(--r);border:1px solid var(--bd);background:var(--card);color:var(--t2);font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .1s;white-space:nowrap;}
+.sort-btn:hover{background:var(--card3);}
+.sort-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+/* Ending Soon — primary, always visible chips in bar */
+.near-wrap{display:flex;align-items:center;gap:0;flex:1;height:100%;overflow:hidden;border-left:1px solid var(--bd);padding:0 14px;}
+.near-wrap:empty{display:none;}
+#near-empty{display:flex;align-items:center;height:100%;font-size:12px;color:var(--t4);}
+.near-bar-chips{display:flex;align-items:center;gap:7px;flex:1;overflow:hidden;}
+.near-hd{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;display:flex;align-items:center;gap:5px;margin-right:4px;flex-shrink:0;}
+.near-hd svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.nc{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--ob);border-radius:var(--r);padding:4px 11px;cursor:pointer;white-space:nowrap;transition:background .1s;flex-shrink:0;}
+.nc:hover{background:var(--odim);}
+.nc-site{font-size:12px;font-weight:700;color:var(--t);}
+.nc-time{font-size:11px;font-weight:700;font-family:var(--m);padding:2px 7px;border-radius:99px;}
+.nc-time.soon{background:var(--odim);color:var(--orange);}
+.nc-time.ov{background:var(--rdim);color:var(--red);}
+/* Excursion — secondary badge with dropdown */
+.exc-wrap{display:flex;align-items:center;gap:0;padding:0 12px;border-left:1px solid var(--bd);height:100%;flex-shrink:0;position:relative;}
+.exc-btn{display:none;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:var(--r);border:1px solid var(--rb);cursor:pointer;font-size:12px;font-weight:700;background:var(--rdim);color:var(--red);transition:all .12s;white-space:nowrap;}
+.exc-btn.on{display:flex;}
+.exc-btn:hover{filter:brightness(.95);}
+.exc-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;}
+/* Excursion dropdown panel */
+.exc-panel{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--card);border:1px solid var(--bd);border-radius:var(--r2);box-shadow:var(--sh2);z-index:100;min-width:260px;max-width:360px;}
+.exc-panel.on{display:block;}
+.ap-header{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;padding:9px 14px 6px;border-bottom:1px solid var(--bd);}
+.ap-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd);cursor:pointer;gap:12px;}
+.ap-row:last-child{border-bottom:none;}
+.ap-row:hover{background:var(--card2);}
+.ap-site{font-size:13px;font-weight:600;color:var(--t);}
+.ap-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap;font-family:var(--m);}
+.ap-badge.exc{background:var(--rdim);color:var(--red);}
+
+/* KANBAN */
+.kanban-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.kanban-panel{display:none;flex:1;overflow:hidden;}
+.kanban-panel.on{display:flex;}
+.kanban-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px 20px 20px;height:100%;overflow-y:auto;}
+.kboard{display:flex;flex-direction:column;min-height:0;}
+.kboard-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:2px 0 8px;border-bottom:2px solid var(--bd);flex-shrink:0;}
+.kboard-title{font-size:14px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;flex:1;}
+.kboard-badge{font-size:13px;font-weight:700;padding:3px 12px;border-radius:99px;background:var(--card);border:1px solid var(--bd);color:var(--t3);}
+.kboard-badge.hot{background:var(--odim);color:var(--orange);border-color:var(--ob);}
+.kboard-body{flex:1;overflow-y:auto;}
+.empty-col{text-align:center;padding:24px 16px;color:var(--t4);border:1px dashed var(--bd);border-radius:var(--r2);background:var(--card);}
+.empty-col svg{width:24px;height:24px;stroke:var(--bd2);fill:none;stroke-width:1.5;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto;}
+.empty-col p{font-size:13px;}
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 20px 20px;overflow-y:auto;height:100%;align-content:start;}
+.comp-empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--t4);}
+.comp-empty svg{width:36px;height:36px;stroke:var(--bd2);fill:none;stroke-width:1.5;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;}
+.comp-empty p{font-size:14px;}
+
+/* SITE CARD */
+.sc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r3);overflow:hidden;margin-bottom:8px;cursor:pointer;transition:box-shadow .12s;}
+.sc:hover{box-shadow:var(--sh2);}
+.sc.st-ipr{border-left:4px solid var(--orange);}
+.sc.st-exc{border-left:4px solid var(--rb);background:#fdf9f9;}
+.sc.st-done{border-left:4px solid var(--gb);opacity:.68;}
+.sc.st-done:hover{opacity:1;}
+.comp-grid .sc{margin-bottom:0;}
+.sc-row{display:flex;align-items:stretch;min-height:88px;}
+.sc-dot{width:4px;flex-shrink:0;}
+.sc-dot.pending{background:var(--bd2);}
+.sc-dot.inprogress{background:var(--ab);}
+.sc-dot.done{background:var(--gb);}
+.sc-dot.excursion{background:var(--rb);}
+.sc-main{flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:7px;}
+.sc-header{display:flex;align-items:center;gap:7px;overflow:hidden;}
+.sc-site{font-size:16px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;}
+.upl-badge{font-size:10px;font-weight:700;background:var(--card3);border:1px solid var(--bd);color:var(--act);padding:1px 7px;border-radius:99px;flex-shrink:0;}
+.sc-sub{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.sc-meta{font-size:13px;color:var(--t3);display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.sc-meta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;opacity:.5;flex-shrink:0;}
+.sc-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-family:var(--m);font-weight:600;color:var(--t2);background:var(--card3);border:1px solid var(--bd);padding:2px 8px;border-radius:4px;white-space:nowrap;}
+.sc-chip svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;}
+.dev-badge{cursor:pointer;}
+.dev-badge:hover{background:var(--card2);}
+.sc-status{font-size:13px;font-weight:600;}
+.sc-status.pend{color:var(--t4);}
+.sc-status.run{color:var(--act);}
+.sc-status.urg{color:var(--amber);font-weight:700;}
+.sc-status.exc{color:var(--red);}
+.sc-status.done{color:var(--green);}
+.sc-action{flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid var(--bd);}
+.sc-btn{width:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:background .12s;text-align:center;line-height:1.2;}
+.sc-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.sc-btn.start,.sc-btn.stop,.sc-btn.view{background:var(--card);color:var(--act);}
+.sc-btn.start:hover,.sc-btn.stop:hover,.sc-btn.view:hover{background:var(--card3);}
+.tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--card3);color:var(--t2);white-space:nowrap;}
+.abadge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--card3);color:var(--t2);white-space:nowrap;}
+.typill{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--card3);color:var(--t2);}
+.typill svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;}
+
+
+/* ── DATA MATRIX BARCODE ─────────────────────────── */
+.bc-block{background:var(--card);border:1px solid var(--bd);border-radius:var(--r2);padding:14px 16px;display:flex;align-items:center;gap:16px;margin-bottom:10px;}
+.bc-matrix{flex-shrink:0;}
+.bc-matrix svg rect{shape-rendering:crispEdges;}
+.bc-info{min-width:0;}
+.bc-label{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.bc-code{font-size:16px;font-weight:700;font-family:var(--m);color:var(--t);word-break:break-all;}
+.bc-sub{font-size:11px;color:var(--t3);margin-top:3px;}
+
+
+/* ENDING SOON PAGE */
+.near-site-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:10px;display:flex;align-items:stretch;}
+.near-site-card.ov{border-left:4px solid var(--red);}
+.near-site-card.soon{border-left:4px solid var(--orange);}
+.nsc-main{flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:4px;}
+.nsc-site{font-size:16px;font-weight:700;color:var(--t);}
+.nsc-meta{font-size:13px;color:var(--t3);display:flex;gap:10px;flex-wrap:wrap;}
+.nsc-time{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.nsc-planned{font-size:12px;color:var(--t3);}
+.nsc-badge{font-size:14px;font-weight:700;font-family:var(--m);padding:3px 10px;border-radius:99px;}
+.nsc-badge.ov{background:var(--rdim);color:var(--red);}
+.nsc-badge.soon{background:var(--odim);color:var(--orange);}
+.nsc-action{display:flex;align-items:center;border-left:1px solid var(--bd);}
+.nsc-stop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:110px;padding:12px;border:none;background:var(--card);color:var(--act);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--f);transition:background .12s;}
+.nsc-stop:hover{background:var(--card3);}
+.nsc-stop svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+/* ── ENDING SOON STRIP ────────────────────────────── */
+#ending-soon-strip{flex-shrink:0;background:#ec7802;position:relative;overflow:hidden;}
+#ending-soon-strip::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 8px,rgba(0,0,0,.04) 8px,rgba(0,0,0,.04) 16px);}
+.es-inner{display:flex;align-items:stretch;position:relative;z-index:1;}
+.es-label{display:flex;align-items:center;gap:8px;padding:0 18px;background:rgba(0,0,0,.18);color:#fff;font-size:13px;font-weight:800;letter-spacing:.08em;white-space:nowrap;flex-shrink:0;}
+.es-label svg{width:16px;height:16px;stroke:#fff;flex-shrink:0;}
+.es-sites{display:flex;align-items:center;gap:0;flex:1;overflow:hidden;padding:8px 14px;flex-wrap:nowrap;}
+.es-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-right:8px;transition:background .12s;}
+.es-chip:hover{background:rgba(255,255,255,.28);}
+.es-chip-site{font-size:14px;font-weight:700;color:#fff;}
+.es-chip-time{font-size:13px;font-weight:700;font-family:var(--m);padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.2);color:#fff;white-space:nowrap;}
+.es-chip-time.ov{background:rgba(0,0,0,.35);}
+
+/* DETAIL SCREEN */
+.back{display:inline-flex;align-items:center;gap:8px;color:var(--t3);font-size:15px;font-weight:600;cursor:pointer;padding:14px 20px 0;flex-shrink:0;min-height:52px;}
+.back:hover{color:var(--act);}
+.back svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.detail-body{flex:1;overflow-y:auto;padding:12px 20px 60px;}
+.ibar{background:var(--card);border:1px solid var(--bd);border-radius:var(--r2);display:flex;flex-wrap:wrap;margin-bottom:14px;}
+.ibi{flex:1;min-width:120px;padding:10px 14px;border-right:1px solid var(--bd);}
+.ibi:last-child{border-right:none;}
+.ibi-lbl{font-size:12px;font-weight:700;color:var(--t4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.ibi-val{font-size:16px;font-weight:700;}
+.ibi-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;}
+.sptbl{background:var(--card2);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:12px;}
+.sphd{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;padding:7px 13px 5px;background:var(--card3);border-bottom:1px solid var(--bd);}
+.spr{display:grid;grid-template-columns:130px 1fr;padding:9px 13px;border-bottom:1px solid var(--bd);}
+.spr:last-child{border-bottom:none;}
+.spr-lbl{font-size:13px;font-weight:700;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;}
+.fv{font-size:15px;font-family:var(--m);}
+.fv.vl{color:var(--t);font-weight:600;}.fv.gr{color:var(--green);font-weight:700;}
+.fv.rd{color:var(--red);font-weight:700;}.fv.am{color:var(--amber);font-weight:700;}.fv.em{color:var(--t4);font-style:italic;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:14px;font-weight:700;margin-bottom:12px;}
+.pill svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.p-pend{background:var(--card3);color:var(--t3);border:1px solid var(--bd);}
+.p-run{background:var(--adim);color:var(--amber);border:1px solid var(--ab);}
+.p-done{background:var(--gdim);color:var(--green);border:1px solid var(--gb);}
+.p-exc{background:var(--rdim);color:var(--red);border:1px solid var(--rb);}
+.det-section-lbl{font-size:13px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;}
+.det-section-lbl:first-child{margin-top:0;}
+.det-scan-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.det-scan-input{flex:1;height:58px;background:var(--card2);border:2px solid var(--bd);border-radius:var(--r2);padding:0 18px;font-size:17px;font-family:var(--m);color:var(--t);outline:none;transition:border-color .15s;}
+.det-scan-input:focus{border-color:var(--act);background:#fff;}
+@keyframes detpulse{0%,100%{box-shadow:0 0 0 0 rgba(46,60,82,.15)}50%{box-shadow:0 0 0 4px rgba(46,60,82,.06)}}
+.det-scan-input.scanning{border-color:var(--act);animation:detpulse .8s infinite;}
+.det-scan-btn{height:58px;padding:0 20px;background:var(--card);border:2px solid var(--bd2);border-radius:var(--r2);font-size:15px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0;transition:all .12s;}
+.det-scan-btn:hover{background:var(--act);color:#fff;border-color:var(--act);}
+.det-scan-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.det-ok{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--green);white-space:nowrap;flex-shrink:0;}
+.det-ok svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.abtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:18px;border-radius:var(--r2);border:2px solid var(--bd2);background:var(--card);color:var(--act);font-size:18px;font-weight:700;cursor:pointer;min-height:64px;transition:all .12s;}
+.abtn:hover{background:var(--card3);}
+.abtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.abtn.end{border-color:var(--rb);color:var(--red);}
+.abtn.end:hover{background:var(--rdim);}
+
+/* MODALS */
+.mo{display:none;position:fixed;inset:0;background:rgba(10,18,40,.4);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.mo.on{display:flex;}
+.modal{background:var(--card);border:1px solid var(--bd);border-radius:var(--r3);padding:22px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:0 14px 44px rgba(0,0,0,.16);}
+.modal-t{font-size:20px;font-weight:800;margin-bottom:3px;}
+.modal-s{font-size:14px;color:var(--t3);margin-bottom:16px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:13px;font-weight:700;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
+.fg input,.fg select{width:100%;background:var(--card2);border:1px solid var(--bd);border-radius:var(--r2);padding:15px 16px;color:var(--t);font-size:16px;outline:none;transition:border-color .15s;}
+.fg input:focus,.fg select:focus{border-color:var(--act);}
+.macts{display:flex;flex-direction:column;gap:7px;margin-top:14px;}
+.mbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:17px;border-radius:var(--r2);border:2px solid var(--bd2);background:var(--card);color:var(--act);font-size:17px;font-weight:700;cursor:pointer;min-height:62px;}
+.mbtn:hover{background:var(--card3);}
+.mbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.mbtn.red{border-color:var(--rb);color:var(--red);}
+.mbtn.red:hover{background:var(--rdim);}
+.mbtn.sec{color:var(--t3);}
+.ctog,.ttog{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.cbtn,.tbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:14px;border-radius:var(--r2);background:var(--card2);border:1px solid var(--bd);color:var(--t3);font-size:15px;font-weight:600;cursor:pointer;min-height:54px;}
+.cbtn svg,.tbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
+.cbtn.sel.valid{background:var(--gdim);border-color:var(--gb);color:var(--green);}
+.cbtn.sel.warn{background:var(--adim);border-color:var(--ab);color:var(--amber);}
+.tbtn.sel{background:var(--card3);border-color:var(--bd2);color:var(--act);}
+.shint{display:flex;align-items:center;gap:8px;background:var(--card3);border:1px solid var(--bd2);border-radius:var(--r2);padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--t2);}
+.shint svg{width:16px;height:16px;stroke:var(--t2);fill:none;stroke-width:1.8;flex-shrink:0;}
+.sw{display:flex;gap:7px;align-items:stretch;}
+.sw input{flex:1;}
+.scbtn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 16px;background:var(--card2);border:1px solid var(--bd2);border-radius:var(--r2);color:var(--act);font-size:14px;font-weight:700;cursor:pointer;min-height:54px;}
+.scbtn:hover{background:var(--act);color:#fff;}
+.scbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;}
+@keyframes scp{0%,100%{box-shadow:0 0 0 0 rgba(46,60,82,.2)}50%{box-shadow:0 0 0 4px rgba(46,60,82,.07)}}
+.fg input.scanning{border-color:var(--act);animation:scp .8s infinite;}
+.sfound{font-size:12px;color:var(--green);font-weight:700;margin-top:5px;display:none;align-items:center;gap:4px;}
+.sfound.on{display:flex;}
+.sfound svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.elapsed-box{background:var(--adim);border:1px solid var(--ab);border-radius:var(--r2);padding:12px 14px;margin-bottom:12px;}
+.elapsed-lbl{font-size:10px;font-weight:700;color:var(--t4);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;}
+.elapsed-val{font-size:28px;font-weight:800;color:var(--amber);font-family:var(--m);}
+.devtip{position:fixed;z-index:600;background:var(--card);border:1px solid var(--bd2);border-radius:var(--r2);padding:12px 15px;pointer-events:none;opacity:0;transform:translateY(5px);transition:opacity .15s,transform .15s;min-width:185px;box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.devtip.on{opacity:1;transform:none;}
+.dt-id{font-size:13px;font-weight:700;font-family:var(--m);margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bd);}
+.dt-row{margin-bottom:5px;}
+.dt-lbl{font-size:10px;font-weight:700;color:var(--t4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:1px;}
+.dt-val{font-size:12px;font-family:var(--m);color:var(--t2);}
+.dt-st{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r);}
+.dt-st.valid{background:var(--gdim);color:var(--green);border:1px solid var(--gb);}
+.dt-st.warn{background:var(--adim);color:var(--amber);border:1px solid var(--ab);}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--t);border-radius:var(--r2);padding:12px 22px;font-size:15px;font-weight:600;color:#fff;z-index:300;transition:transform .22s;white-space:nowrap;display:flex;align-items:center;gap:7px;pointer-events:none;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--gb);}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:99px;}
+/* SUMMARY */
+.sum-hero{text-align:center;padding:24px 0 16px;}
+.sum-ico{width:56px;height:56px;border-radius:50%;background:var(--gdim);border:2px solid var(--gb);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.sum-ico svg{width:28px;height:28px;stroke:var(--green);fill:none;stroke-width:2.5;}
+.sum-title{font-size:20px;font-weight:800;margin-bottom:3px;}
+.sum-sub{font-size:13px;color:var(--t3);}
+.btnrow{display:flex;gap:8px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:var(--r2);border:1px solid var(--bd);background:var(--card2);color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;min-height:44px;}
+.btn:hover{background:var(--card3);}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<!-- UNIFIED CONTROL BAR -->
+<div class="ctrl-bar">
+  <!-- Tabs -->
+  <div class="tab-wrap">
+    <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+      Active <span class="tab-badge" id="tab-active-count">0</span>
+    </button>
+    <button class="tab-btn" id="tab-done" onclick="switchTab('done')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+      Completed <span class="tab-badge" id="tab-done-count">0</span>
+    </button>
+    <button class="tab-btn" id="tab-near" onclick="switchTab('near')">
+      Ending Soon <span class="near-tab-badge" id="tab-near-count">0</span>
+    </button>
+  </div>
+  <!-- spacer -->
+  <div style="flex:1;min-width:0;"></div>
+
+  <!-- Excursion — secondary badge + dropdown -->
+  <div class="exc-wrap">
+    <button class="exc-btn" id="exc-btn" onclick="toggleExcPanel()" style="display:none;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #c08888;background:#f4eded;color:#883030;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .12s;">
+      <span id="exc-count">0</span> Excursion
+    </button>
+    <div class="exc-panel" id="exc-panel">
+      <div class="ap-header">Excursions</div>
+      <div id="exc-panel-rows"></div>
+    </div>
+  </div>
+  <!-- Profile -->
+  <div class="prf-wrap">
+    <div class="offl"><div class="odot"></div>Offline</div>
+    <div class="prf"><div class="pav">RK</div><div><div class="pn">Ravi Kumar</div><div class="pr">Shopfloor QC</div></div></div>
+  </div>
+</div>
+
+<!-- ENDING SOON STRIP — persistent urgency alert -->
+<div id="ending-strip" style="display:none;">
+  <div class="ending-strip-inner">
+    <div class="ending-strip-left">
+      <span class="ending-strip-pulse"></span>
+      <span class="ending-strip-label">Ending Soon</span>
+      <span class="ending-strip-count" id="ending-strip-count">0</span>
+    </div>
+    <div class="ending-strip-sites" id="ending-strip-sites"></div>
+    <button class="ending-strip-all" onclick="openNearPage()">View All →</button>
+  </div>
+</div>
+
+<!-- ENDING SOON STRIP — persistent, always visible when active -->
+<div id="ending-soon-strip" style="display:none;">
+  <div class="es-inner">
+    <div class="es-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>ENDING SOON</span>
+    </div>
+    <div class="es-sites" id="es-sites"></div>
+  </div>
+</div>
+
+<!-- S1: KANBAN -->
+<div class="scr on" id="s1">
+  <div class="filter-row">
+    <div class="filter-group">
+      <span class="filter-label">Line</span>
+      <button class="fb active" onclick="setLine('all')" id="fl-all">All <span class="fb-count" id="flc-all">0</span></button>
+      <button class="fb" onclick="setLine('Filling Line A')" id="fl-a">Line A <span class="fb-count" id="flc-a">0</span></button>
+      <button class="fb" onclick="setLine('Filling Line B')" id="fl-b">Line B <span class="fb-count" id="flc-b">0</span></button>
+      <button class="fb" onclick="setLine('Filling Line C')" id="fl-c">Line C <span class="fb-count" id="flc-c">0</span></button>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <span class="filter-label">Method</span>
+      <button class="fb active" onclick="setMethod('all')" id="fm-all">All <span class="fb-count" id="fmc-all">0</span></button>
+      <button class="fb" onclick="setMethod('Passive')" id="fm-passive">Passive <span class="fb-count" id="fmc-passive">0</span></button>
+      <button class="fb" onclick="setMethod('Active')" id="fm-active">Active <span class="fb-count" id="fmc-active">0</span></button>
+      <button class="fb" onclick="setMethod('Contact')" id="fm-contact">Contact <span class="fb-count" id="fmc-contact">0</span></button>
+    </div>
+    <div class="filter-right">
+      <button class="sort-btn" onclick="toggleSort()">
+        <svg id="sort-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="8 9 12 5 16 9"/></svg>
+        <span id="sort-lbl">Earliest</span>
+      </button>
+      <span class="list-info" id="list-info"></span>
+    </div>
+  </div>
+
+  <div class="kanban-wrap">
+    <div class="kanban-panel on" id="panel-active">
+      <div class="kanban-grid">
+        <div class="kboard">
+          <div class="kboard-hd">
+            <div class="kboard-title">Not Started</div>
+            <div class="kboard-badge" id="kb-pend">0</div>
+          </div>
+          <div class="kboard-body" id="kc-pend"></div>
+        </div>
+        <div class="kboard">
+          <div class="kboard-hd">
+            <div class="kboard-title">In Progress</div>
+            <div class="kboard-badge hot" id="kb-ipr">0</div>
+          </div>
+          <div class="kboard-body" id="kc-ipr"></div>
+        </div>
+      </div>
+    </div>
+    <div class="kanban-panel" id="panel-done">
+      <div class="comp-grid" id="kc-done"></div>
+    </div>
+    <!-- Ending Soon panel -->
+    <div class="kanban-panel" id="panel-near">
+      <div style="flex:1;overflow-y:auto;padding:16px 20px 60px;" id="near-page-list-inline">
+        <div style="text-align:center;padding:48px 24px;color:var(--t4);">
+          <p style="font-size:14px;">No sites ending soon</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: DETAIL -->
+<div class="scr" id="s2">
+  <div class="back" onclick="go('s1')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>All Sites</div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- S4: ENDING SOON PAGE -->
+<div class="scr" id="s4">
+  <div class="back" onclick="go('s1')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back</div>
+  <div class="detail-body">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--odim);border:2px solid var(--ob);display:flex;align-items:center;justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--t);">Ending Soon</div>
+        <div style="font-size:13px;color:var(--t3);" id="near-page-sub">Sites approaching their planned end time</div>
+      </div>
+    </div>
+    <div id="near-page-list"></div>
+  </div>
+</div>
+
+<!-- S3: SUMMARY -->
+<div class="scr" id="s3">
+  <div class="back" onclick="go('s1')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>All Sites</div>
+  <div class="detail-body">
+    <div class="sum-hero"><div class="sum-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="sum-title">Complete</div><div class="sum-sub" id="sum-sub"></div></div>
+    <div id="sum-tbl"></div>
+    <div class="btnrow"><button class="btn" onclick="go('s1')">Done</button></div>
+  </div>
+</div>
+</div>
+
+<div id="devtip" class="devtip"></div>
+
+<!-- PASSIVE START -->
+<div class="mo" id="m-ps"><div class="modal"><div class="modal-t" id="mps-t">Start Sampling</div><div class="modal-s" id="mps-s"></div>
+<div class="shint"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan petri dish then confirm site barcode</div>
+<div class="fg"><label>Petri Dish ID</label><div class="sw"><input type="text" id="i-dish" placeholder="e.g. PD-00914"><button class="scbtn" onclick="scan('i-dish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div></div>
+<div class="fg"><label>Site Barcode</label><div class="sw"><input type="text" id="i-site" placeholder="Scan site label"><button class="scbtn" onclick="scan('i-site')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div></div>
+<div class="macts"><button class="mbtn" onclick="cfmPStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start & Begin Timer</button><button class="mbtn sec" onclick="closeM('m-ps')">Cancel</button></div></div></div>
+
+<!-- PASSIVE END -->
+<div class="mo" id="m-pe"><div class="modal"><div class="modal-t" id="mpe-t">Record End Time</div><div class="modal-s" id="mpe-s"></div>
+<div class="elapsed-box"><div class="elapsed-lbl">Elapsed time</div><div class="elapsed-val" id="pe-elapsed">—</div></div>
+<div class="fg"><label>Lid Status</label><select id="i-lid"><option>Closed — dish secured</option><option>Closed — sealed with tape</option></select></div>
+<div class="macts"><button class="mbtn red" onclick="cfmPEnd()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Record End Time</button><button class="mbtn sec" onclick="closeM('m-pe')">Cancel</button></div></div></div>
+
+<!-- ACTIVE START -->
+<div class="mo" id="m-as"><div class="modal"><div class="modal-t" id="mas-t">Set Up Active Sampling</div><div class="modal-s" id="mas-s"></div>
+<div class="shint"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan Device ID — calibration fills automatically</div>
+<div class="fg"><label>Device ID</label><div class="sw"><input type="text" id="i-dev" placeholder="e.g. DEV-001" oninput="onDevInput(this.value)"><button class="scbtn" onclick="scan('i-dev')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div>
+<div class="sfound" id="dev-found"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Device found — calibration auto-filled</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="fg"><label>Last Calibration</label><input type="text" id="i-lastc" placeholder="Auto-filled" readonly style="background:var(--card3);"></div><div class="fg"><label>Expiry</label><input type="text" id="i-expiry" placeholder="Auto-filled" readonly style="background:var(--card3);"></div></div>
+<div class="fg"><label>Calibration Status</label><div class="ctog"><button class="cbtn sel valid" id="cb-valid" onclick="selCalib('valid')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Valid</button><button class="cbtn warn" id="cb-warn" onclick="selCalib('warn')"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Warning</button></div></div>
+<div class="fg"><label>Petri Dish ID</label><div class="sw"><input type="text" id="i-adish" placeholder="e.g. PD-00950"><button class="scbtn" onclick="scan('i-adish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div></div>
+<div class="fg"><label>Site Barcode</label><div class="sw"><input type="text" id="i-asite" placeholder="Scan site label"><button class="scbtn" onclick="scan('i-asite')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div></div>
+<div class="fg"><label>Air Volume (L)</label><input type="text" id="i-vol" placeholder="e.g. 1000"></div>
+<div class="macts"><button class="mbtn" onclick="cfmAStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Device</button><button class="mbtn sec" onclick="closeM('m-as')">Cancel</button></div></div></div>
+
+<!-- ACTIVE END -->
+<div class="mo" id="m-ae"><div class="modal"><div class="modal-t" id="mae-t">Stop Device</div><div class="modal-s" id="mae-s"></div>
+<div class="elapsed-box"><div class="elapsed-lbl">Elapsed time</div><div class="elapsed-val" id="ae-elapsed">—</div></div>
+<div class="fg"><label>Lid Status</label><select id="i-alid"><option>Lid closed — dish removed</option><option>Lid closed and sealed</option></select></div>
+<div class="macts"><button class="mbtn red" onclick="cfmAEnd()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Stop & Record End Time</button><button class="mbtn sec" onclick="closeM('m-ae')">Cancel</button></div></div></div>
+
+<!-- CONTACT START -->
+<div class="mo" id="m-cs"><div class="modal"><div class="modal-t" id="mcs-t">Log Contact Sample</div><div class="modal-s" id="mcs-s"></div>
+<div class="fg"><label>Sample Type</label><div class="ttog"><button class="tbtn sel" id="tb-plate" onclick="selCType('plate')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Plate</button><button class="tbtn" id="tb-swab" onclick="selCType('swab')"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="5" r="3"/></svg>Swab</button></div></div>
+<div class="fg"><label>Dish / Swab ID</label><div class="sw"><input type="text" id="i-cdish" placeholder="e.g. PD-00950"><button class="scbtn" onclick="scan('i-cdish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button></div></div>
+<div class="macts"><button class="mbtn" onclick="cfmCStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start & Begin Timer</button><button class="mbtn sec" onclick="closeM('m-cs')">Cancel</button></div></div></div>
+
+<!-- CONTACT STOP -->
+<div class="mo" id="m-ce"><div class="modal"><div class="modal-t" id="mce-t">End Contact Sample</div><div class="modal-s" id="mce-s"></div>
+<div class="elapsed-box"><div class="elapsed-lbl">Elapsed time</div><div class="elapsed-val" id="ce-elapsed">—</div></div>
+<div class="macts"><button class="mbtn red" onclick="cfmCEnd()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Record End Time</button><button class="mbtn sec" onclick="closeM('m-ce')">Cancel</button></div></div></div>
+
+<div class="toast" id="toast"><div class="tdot"></div><span id="tmsg"></span></div>
+
+<script>
+
+// ── DEVICE DB ─────────────────────────────────────────────────────────────
+const DEVDB={
+  'DEV-001':{lc:'18 Jul 2025',exp:'22 Jan 2027',st:'valid'},
+  'DEV-002':{lc:'10 Mar 2025',exp:'12 Sep 2025',st:'warn'},
+  'DEV-003':{lc:'05 Jan 2026',exp:'07 Jan 2028',st:'valid'},
+  'DEV-004':{lc:'22 Nov 2024',exp:'24 Nov 2025',st:'warn'},
+};
+
+// ── SITE DATA ─────────────────────────────────────────────────────────────
+// Each SITE is the primary unit. No task wrapper.
+// Fields: id, site, method, grade, line, loc, plannedStart, plannedEnd, bc
+// Active: vol, flow, dev, cst, lc, cexp
+// Contact: area, csid, type
+// All: status, dish, asite, am, st, et, excT, upl
+const SITES = [
+  // PASSIVE
+  {id:'s1', site:'Line A > Site 1', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-SITE-001', status:'done', dish:'PD-00801', asite:'SITE-01', am:'Passive Air Sampling', st:'06:00', et:'10:00', excT:null, upl:false},
+  {id:'s2', site:'Line A > Site 2', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-SITE-002', status:'done', dish:'PD-00802', asite:'SITE-02', am:'Passive Air Sampling', st:'06:01', et:'10:01', excT:null, upl:false},
+  {id:'s3', site:'Line A > Site 3', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'11:09', bc:'BC-SITE-003', status:'inprogress', dish:'PD-00803', asite:'SITE-03', am:'Passive Air Sampling', st:'14:03', et:null, excT:null, upl:false},
+  {id:'s4', site:'Line A > Site 4', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-SITE-004', status:'pending', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'s5', site:'Line A > Site 5', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-SITE-005', status:'pending', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'s6', site:'Line A > Site 6', method:'Passive', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-SITE-006', status:'excursion', dish:'PD-00806', asite:'SITE-06', am:'Passive Air Sampling', st:'10:34', et:'14:34', excT:'started_late', upl:false},
+  // ACTIVE
+  {id:'a1', site:'Line A > Site 1', method:'Active', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-SITE-A01', vol:1000, flow:100, status:'done', dev:'DEV-001', cst:'valid', lc:'18 Jul 2025', cexp:'22 Jan 2027', dish:'PD-00901', asite:'SITE-01', am:'Active Air Sampling', st:'10:00', et:'10:10', excT:null, upl:false},
+  {id:'a2', site:'Line A > Site 2', method:'Active', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'11:04', bc:'BC-SITE-A02', vol:1000, flow:100, status:'inprogress', dev:'DEV-001', cst:'valid', lc:'18 Jul 2025', cexp:'22 Jan 2027', dish:'PD-00902', asite:'SITE-02', am:'Active Air Sampling', st:'10:02', et:null, excT:null, upl:false},
+  {id:'a3', site:'Line A > Site 3', method:'Active', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-SITE-A03', vol:1000, flow:100, status:'pending', dev:'', cst:'', lc:'', cexp:'', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'a4', site:'Line A > Site 4', method:'Active', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-SITE-A04', vol:1000, flow:100, status:'pending', dev:'', cst:'', lc:'', cexp:'', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'a5', site:'Line A > Site 5', method:'Active', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-SITE-A05', vol:1000, flow:100, status:'excursion', dev:'DEV-002', cst:'warn', lc:'10 Mar 2025', cexp:'12 Sep 2025', dish:'PD-00905', asite:'SITE-05', am:'Active Air Sampling', st:'09:52', et:'10:02', excT:'started_early', upl:false},
+  // CONTACT
+  {id:'c1', site:'Between Site 1 and Site 2', method:'Contact', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'11:00', bc:'BC-CON-001', area:'Fill zone', csid:'cs-1', status:'done', type:'plate', dish:'PD-C001', st:'10:05', et:'10:15', excT:null, upl:false},
+  {id:'c2', site:'Fill head — Line A', method:'Contact', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'10:56', bc:'BC-CON-002', area:'Equipment', csid:'cs-5', status:'inprogress', type:'swab', dish:'PD-C002', st:'10:22', et:null, excT:null, upl:false},
+  {id:'c3', site:'Workbench surface — Zone 1', method:'Contact', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'11:00', bc:'BC-CON-003', area:'Fixtures', csid:'cs-10', status:'pending', type:null, dish:'', st:null, et:null, excT:null, upl:false},
+  {id:'c4', site:'Glove port — Left', method:'Contact', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'10:00', plannedEnd:'11:00', bc:'BC-CON-004', area:'Isolator', csid:'cs-12', status:'pending', type:null, dish:'', st:null, et:null, excT:null, upl:false},
+  {id:'c5', site:'Conveyor belt surface', method:'Contact', grade:'Grade A', line:'Filling Line A', loc:'Cleanroom 1', plannedStart:'14:00', plannedEnd:'15:00', bc:'BC-CON-005', area:'Equipment', csid:'cs-7', status:'pending', type:null, dish:'', st:null, et:null, excT:null, upl:false},
+  // FILLING LINE B
+  {id:'b1', site:'Line B > Site 1', method:'Passive', grade:'Grade B', line:'Filling Line B', loc:'Cleanroom 2', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-B-001', status:'done', dish:'PD-B001', asite:'SITE-B01', am:'Passive Air Sampling', st:'06:00', et:'10:00', excT:null, upl:false},
+  {id:'b2', site:'Line B > Site 2', method:'Passive', grade:'Grade B', line:'Filling Line B', loc:'Cleanroom 2', plannedStart:'06:00', plannedEnd:'11:09', bc:'BC-B-002', status:'inprogress', dish:'PD-B002', asite:'SITE-B02', am:'Passive Air Sampling', st:'14:05', et:null, excT:null, upl:false},
+  {id:'b3', site:'Line B > Site 3', method:'Passive', grade:'Grade B', line:'Filling Line B', loc:'Cleanroom 2', plannedStart:'06:00', plannedEnd:'10:00', bc:'BC-B-003', status:'pending', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'b4', site:'Line B > Site 1', method:'Active', grade:'Grade B', line:'Filling Line B', loc:'Cleanroom 2', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-B-A01', vol:1000, flow:100, status:'pending', dev:'', cst:'', lc:'', cexp:'', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  // FILLING LINE C
+  {id:'lc1', site:'Line C > Site 1', method:'Passive', grade:'Grade A', line:'Filling Line C', loc:'Cleanroom 3', plannedStart:'08:00', plannedEnd:'12:00', bc:'BC-C-001', status:'pending', dish:'', asite:'', am:'', st:null, et:null, excT:null, upl:false},
+  {id:'lc2', site:'Line C > Site 2', method:'Active', grade:'Grade A', line:'Filling Line C', loc:'Cleanroom 3', plannedStart:'10:00', plannedEnd:'10:10', bc:'BC-C-A01', vol:1000, flow:100, status:'done', dev:'DEV-003', cst:'valid', lc:'05 Jan 2026', cexp:'07 Jan 2028', dish:'PD-C201', asite:'SITE-C02', am:'Active Air Sampling', st:'10:00', et:'10:10', excT:null, upl:false},
+  {id:'lc3', site:'Glove port — Line C', method:'Contact', grade:'Grade A', line:'Filling Line C', loc:'Cleanroom 3', plannedStart:'10:00', plannedEnd:'11:00', bc:'BC-C-C01', area:'Isolator', csid:'cs-12', status:'pending', type:null, dish:'', st:null, et:null, excT:null, upl:false},
+];
+
+let aSid=null, methodFilter='all', lineFilter='all', sortAsc=true, aCalib='valid', aCType='plate', activeTab='active';
+
+function save(){try{localStorage.setItem('qc_v15',JSON.stringify(SITES));}catch(e){}}
+function load(){try{const s=localStorage.getItem('qc_v15');if(s){const d=JSON.parse(s);d.forEach(si=>{const i=SITES.findIndex(x=>x.id===si.id);if(i>=0)Object.assign(SITES[i],si);});}}catch(e){}}
+function tnow(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function mSince(t){if(!t)return 0;const[h,m]=t.split(':').map(Number),n=new Date();return(n.getHours()*60+n.getMinutes())-(h*60+m);}
+function toMin(t){if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;}
+function dur(s,e){if(!s||!e)return'—';const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);const d=(eh*60+em)-(sh*60+sm);if(d<0)return'—';return d>=60?Math.floor(d/60)+'h '+(d%60)+'m':(d+'m');}
+function go(id){document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function toast(msg){const t=document.getElementById('toast');document.getElementById('tmsg').textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2400);}
+function gcls(g){return g.includes('A')?'grade-a':g.includes('B')?'grade-b':'grade-c';}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+function acls(a){return a.toLowerCase().replace(/[^a-z]/g,'');}
+function scan(id){const el=document.getElementById(id);if(!el)return;el.classList.add('scanning');el.focus();const stop=()=>{el.classList.remove('scanning');el.removeEventListener('input',stop);el.removeEventListener('blur',stop);};el.addEventListener('input',stop);el.addEventListener('blur',stop);}
+function onDevInput(v){const d=DEVDB[v.trim()],f=document.getElementById('dev-found');if(d){document.getElementById('i-lastc').value=d.lc;document.getElementById('i-expiry').value=d.exp;selCalib(d.st);f.classList.add('on');}else{document.getElementById('i-lastc').value='';document.getElementById('i-expiry').value='';f.classList.remove('on');}}
+let tipT=null;
+function showTip(e,devId){clearTimeout(tipT);const d=DEVDB[devId],tip=document.getElementById('devtip');if(!d){tip.classList.remove('on');return;}tip.innerHTML=`<div class="dt-id">${devId}</div><div class="dt-row"><div class="dt-lbl">Last Calibrated</div><div class="dt-val">${d.lc}</div></div><div class="dt-row"><div class="dt-lbl">Calibration Due</div><div class="dt-val">${d.exp}</div></div><div class="dt-st ${d.st}">${d.st==='valid'?'✓ Valid':'⚠ Warning'}</div>`;const r=e.currentTarget.getBoundingClientRect();tip.style.left=Math.min(r.left,window.innerWidth-190)+'px';tip.style.top=(r.bottom+7)+'px';tip.classList.add('on');}
+function hideTip(){tipT=setTimeout(()=>document.getElementById('devtip').classList.remove('on'),120);}
+
+
+// ── INLINE SCAN on pending cards ─────────────────────────────────────────
+function inlineScan(sid, field){
+  const inp = document.getElementById('isc-'+sid+'-'+field);
+  if(!inp) return;
+  inp.classList.add('scanning');
+  inp.focus();
+  const stop=()=>{inp.classList.remove('scanning');inp.removeEventListener('input',stop);inp.removeEventListener('blur',stop);};
+  inp.addEventListener('input', stop);
+  inp.addEventListener('blur', stop);
+}
+function saveScanField(sid, field){
+  const inp = document.getElementById('isc-'+sid+'-'+field);
+  if(!inp) return;
+  const val = inp.value.trim();
+  const s = SITES.find(x=>x.id===sid);
+  if(!s || !val) return;
+  if(field==='dish') s.dish = val;
+  if(field==='site') s.asite = val;
+  if(field==='dev'){
+    s.dev = val;
+    const d = DEVDB[val];
+    if(d){ s.lc=d.lc; s.cexp=d.exp; s.cst=d.st; }
+  }
+  save();
+  // Show tick next to field
+  const ok = document.getElementById('isc-ok-'+sid+'-'+field);
+  if(ok) ok.classList.add('on');
+  // Refresh the card without losing focus
+  renderList();
+}
+
+// ── FILTERS & TABS ────────────────────────────────────────────────────────
+function setMethod(v){
+ methodFilter=v;
+ ['all','passive','active','contact'].forEach(k=>document.getElementById('fm-'+k).classList.remove('active'));
+ ({all:'fm-all',Passive:'fm-passive',Active:'fm-active',Contact:'fm-contact'})[v]&&document.getElementById(({all:'fm-all',Passive:'fm-passive',Active:'fm-active',Contact:'fm-contact'})[v]).classList.add('active');
+ renderList();
+}
+function setLine(v){
+ lineFilter=v;
+ ['all','a','b','c'].forEach(k=>document.getElementById('fl-'+k).classList.remove('active'));
+ const map={all:'fl-all','Filling Line A':'fl-a','Filling Line B':'fl-b','Filling Line C':'fl-c'};
+ const el=document.getElementById(map[v]||'fl-all');
+ if(el)el.classList.add('active');
+ renderList();
+}
+function toggleSort(){
+ sortAsc=!sortAsc;
+ document.getElementById('sort-icon').innerHTML=sortAsc?'<line x1="12" y1="5" x2="12" y2="19"/><polyline points="8 9 12 5 16 9"/>':'<line x1="12" y1="5" x2="12" y2="19"/><polyline points="8 15 12 19 16 15"/>';
+ document.getElementById('sort-lbl').textContent=sortAsc?'Earliest':'Latest';
+ renderList();
+}
+function switchTab(tab){
+ activeTab=tab;
+ document.getElementById('tab-active').classList.toggle('active',tab==='active');
+ document.getElementById('tab-done').classList.toggle('active',tab==='done');
+ document.getElementById('tab-near').classList.toggle('active',tab==='near');
+ document.getElementById('panel-active').classList.toggle('on',tab==='active');
+ document.getElementById('panel-done').classList.toggle('on',tab==='done');
+ document.getElementById('panel-near').classList.toggle('on',tab==='near');
+ if(tab==='near')renderNearTab();
+ renderList();
+}
+function renderNearTab(){
+ const nearAll=SITES.filter(s=>s.status==='inprogress'&&mUntilEnd(s)<=15&&mUntilEnd(s)>-60)
+  .sort((a,b)=>mUntilEnd(a)-mUntilEnd(b));
+ const el=document.getElementById('near-page-list-inline');
+ if(!el)return;
+ if(!nearAll.length){
+  el.innerHTML=`<div style="text-align:center;padding:80px 24px;color:var(--t4);">
+   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--bd2)" stroke-width="1.5" style="display:block;margin:0 auto 14px;"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+   <p style="font-size:16px;font-weight:600;">All clear — no sites ending soon</p>
+   <p style="font-size:14px;margin-top:6px;">Sites within 15 min of planned end will appear here</p>
+  </div>`;
+  return;
+ }
+ const isA=s=>s.method==='Active',isC=s=>s.method==='Contact';
+ el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">` +
+  nearAll.map(s=>{
+   const m=mUntilEnd(s),isOv=m<0;
+   const label=isOv?'Overdue':m+'m left';
+   const stopFn=isC(s)?`openCEnd('${s.id}')`:isA(s)?`openAEnd('${s.id}'):`:`openPEnd('${s.id}')`;
+   const method=isA(s)?'Active Air':isC(s)?'Contact':'Passive Air';
+   const accent=isOv?'#883030':'#ec7802';
+   const accentDim=isOv?'#f4eded':'#fff3e6';
+   const accentBd=isOv?'#c08888':'#f5b060';
+   return`<div style="background:#fff;border:1px solid var(--bd);border-left:5px solid ${accent};border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+    <!-- Header band -->
+    <div style="background:${accentDim};border-bottom:1px solid ${accentBd};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+     <div style="font-size:11px;font-weight:700;color:${accent};text-transform:uppercase;letter-spacing:.06em;">${isOv?'⚠ Overdue':'⏰ Ending Soon'}</div>
+     <div style="font-size:18px;font-weight:800;color:${accent};font-family:var(--m);">${label}</div>
+    </div>
+    <!-- Site info -->
+    <div style="padding:14px 16px;">
+     <div style="font-size:17px;font-weight:700;color:var(--t);margin-bottom:6px;">${s.site}</div>
+     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+      <span style="font-size:13px;color:var(--t3);">${s.line}</span>
+      <span style="font-size:13px;color:var(--t3);">·</span>
+      <span style="font-size:13px;color:var(--t3);">${method}</span>
+      ${s.grade?`<span style="font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--card3);color:var(--t2);border:1px solid var(--bd);">${s.grade}</span>`:''}
+     </div>
+     <!-- Timing row -->
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card2);border:1px solid var(--bd);border-radius:7px;padding:10px 12px;margin-bottom:12px;">
+      <div>
+       <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Started</div>
+       <div style="font-size:16px;font-weight:700;font-family:var(--m);color:var(--t);">${s.st||'—'}</div>
+      </div>
+      <div>
+       <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Planned End</div>
+       <div style="font-size:16px;font-weight:700;font-family:var(--m);color:${accent};">${s.plannedEnd}</div>
+      </div>
+     </div>
+     ${s.dish?`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);margin-bottom:12px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+      <span style="font-family:var(--m);font-weight:600;color:var(--t2);">${s.dish}</span>
+     </div>`:''}
+     <!-- Stop button -->
+     <button onclick="${stopFn}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:${accent};color:#fff;border:none;border-radius:7px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--f);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+      Stop & Record End Time
+     </button>
+    </div>
+   </div>`;
+  }).join('') + `</div>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function mOk(s){return(methodFilter==='all'||s.method===methodFilter)&&(lineFilter==='all'||s.line===lineFilter);}
+function srt(arr){return[...arr].sort((a,b)=>sortAsc?toMin(a.plannedStart)-toMin(b.plannedStart):toMin(b.plannedStart)-toMin(a.plannedStart));}
+
+function renderList(){
+ const pend=srt(SITES.filter(s=>s.status==='pending'&&mOk(s)));
+ const ipr=srt(SITES.filter(s=>s.status==='inprogress'&&mOk(s)));
+ const done=srt(SITES.filter(s=>(s.status==='done'||s.status==='excursion')&&mOk(s)));
+ const all=SITES.filter(mOk);
+
+ document.getElementById('kb-pend').textContent=pend.length;
+ document.getElementById('kb-ipr').textContent=ipr.length;
+ document.getElementById('tab-active-count').textContent=pend.length+ipr.length;
+ document.getElementById('tab-done-count').textContent=done.length;
+
+ // Method filter counts (all statuses)
+ document.getElementById('fmc-all').textContent=SITES.length;
+ document.getElementById('fmc-passive').textContent=SITES.filter(s=>s.method==='Passive').length;
+ document.getElementById('fmc-active').textContent=SITES.filter(s=>s.method==='Active').length;
+ document.getElementById('fmc-contact').textContent=SITES.filter(s=>s.method==='Contact').length;
+
+ document.getElementById('list-info').textContent=all.length+' site'+(all.length!==1?'s':'');
+
+ document.getElementById('kc-pend').innerHTML=pend.length===0
+  ?`<div class="empty-col"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg><p>All clear</p></div>`
+  :pend.map(s=>siteCard(s)).join('');
+
+ document.getElementById('kc-ipr').innerHTML=ipr.length===0
+  ?`<div class="empty-col"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>Nothing running yet</p></div>`
+  :ipr.map(s=>siteCard(s)).join('');
+
+ document.getElementById('kc-done').innerHTML=done.length===0
+  ?`<div class="comp-empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg><p>No completed sites</p></div>`
+  :done.map(s=>siteCard(s,true)).join('');
+
+ upAlert();
+}
+
+function siteCard(s, isDone=false){
+ const isX=s.status==='excursion', isA=s.method==='Active', isC=s.method==='Contact';
+ const isPend=s.status==='pending';
+ const mLeft=mUntilEnd(s); const ne=s.status==='inprogress'&&mLeft<=15; const ov=s.status==='inprogress'&&mLeft<0;
+ const EL={started_early:'Started early',started_late:'Started late',ended_early:'Ended early',ended_late:'Ended late'};
+ let stClass='',dotCls=s.status;
+ if(isX){stClass='st-exc';dotCls='excursion';}
+ else if(s.status==='inprogress')stClass='st-ipr';
+ else if(isDone)stClass='st-done';
+ let statusTxt='';
+ if(isPend)statusTxt=`<span class="sc-status pend">Tap to open</span>`;
+ else if(ov)statusTxt=`<span class="sc-status urg">⚠ Overdue — stop now</span>`;
+ else if(ne)statusTxt=`<span class="sc-status urg">⚠ ${mLeft}m remaining</span>`;
+ else if(s.status==='inprogress'){const mL=mUntilEnd(s);statusTxt=`<span class="sc-status run">▶ Since ${s.st}${mL<60&&mL>15?' · '+mL+'m left':''}</span>`;}
+ else if(isX)statusTxt=`<span class="sc-status exc">${EL[s.excT]||'Excursion'} · ${s.st}→${s.et}</span>`;
+ else if(s.status==='done')statusTxt=`<span class="sc-status done">✓ ${s.st}→${s.et} · ${dur(s.st,s.et)}</span>`;
+ let chips='';
+ if(s.dish)chips+=`<span class="sc-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>${s.dish}</span>`;
+ if(s.dev)chips+=`<span class="sc-chip dev-badge" onmouseenter="showTip(event,'${s.dev}')" onmouseleave="hideTip()"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10H2"/></svg>${s.dev}</span>`;
+ let actionBtn='';
+ if(s.status==='inprogress'){
+  if(isC)actionBtn=`<button class="sc-btn stop" onclick="event.stopPropagation();openCEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>Stop</button>`;
+  else if(isA)actionBtn=`<button class="sc-btn stop" onclick="event.stopPropagation();openAEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>Stop</button>`;
+  else actionBtn=`<button class="sc-btn stop" onclick="event.stopPropagation();openPEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>Stop</button>`;
+ } else {
+  actionBtn=`<button class="sc-btn view" onclick="event.stopPropagation();openDetail('${s.id}')"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>${isPend?'Open':'View'}</button>`;
+ }
+ const areaBadge=isC?`<span class="abadge ${acls(s.area)}">${s.area}</span>`:'';
+ const typePill=isC&&s.type?`<span class="typill ${s.type}">${cap(s.type)}</span>`:'';
+ const uplBadge=s.upl?`<span class="upl-badge">Unplanned</span>`:'';
+ return`<div class="sc ${stClass}" onclick="openDetail('${s.id}')">
+  <div class="sc-row">
+   <div class="sc-dot ${dotCls}"></div>
+   <div class="sc-main">
+    <div class="sc-header">
+     <span class="sc-site">${s.site}</span>${uplBadge}${areaBadge}${typePill}
+    </div>
+    <div class="sc-sub">
+     <span class="sc-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${s.plannedStart}–${s.plannedEnd}</span>
+     ${chips}${statusTxt}
+    </div>
+   </div>
+   <div class="sc-action">${actionBtn}</div>
+  </div>
+ </div>`;
+}
+
+// ── DATA MATRIX BARCODE GENERATOR ────────────────────────────────────────
+// Generates a deterministic pseudo-Data-Matrix SVG from any string
+function dmBarcode(code, size=80){
+ const N=16; // 16x16 module grid
+ const cell=Math.floor(size/N);
+ const actual=cell*N;
+ // Seed hash from code
+ let h=0;
+ for(let i=0;i<code.length;i++){h=((h<<5)-h+code.charCodeAt(i))|0;}
+ // Fill modules deterministically — Data Matrix always has L-shaped finder
+ const m=[];
+ for(let r=0;r<N;r++){
+  m[r]=[];
+  for(let c=0;c<N;c++){
+   // Finder pattern: bottom-left L (solid) + top-right alternating
+   if(c===0)          {m[r][c]=1;continue;} // left column solid
+   if(r===N-1)        {m[r][c]=1;continue;} // bottom row solid
+   if(r===0)          {m[r][c]=r%2===0?1:0;continue;} // top alternating
+   if(c===N-1)        {m[r][c]=r%2===0?0:1;continue;} // right alternating
+   // Data area: hash-based
+   const idx=r*N+c;
+   const bit=(h>>>( idx%32))&1;
+   const bit2=(((h*1664525+1013904223)|0)>>>(idx%32))&1;
+   m[r][c]=(bit^bit2^(idx*2654435761>>>31))&1;
+  }
+ }
+ // Build SVG
+ let rects='';
+ for(let r=0;r<N;r++){
+  for(let c=0;c<N;c++){
+   if(m[r][c])rects+=`<rect x="${c*cell}" y="${r*cell}" width="${cell}" height="${cell}" fill="#1a2130"/>`;
+  }
+ }
+ // Quiet zone
+ return`<svg width="${actual+8}" height="${actual+8}" viewBox="-4 -4 ${actual+8} ${actual+8}" xmlns="http://www.w3.org/2000/svg"><rect x="-4" y="-4" width="${actual+8}" height="${actual+8}" fill="white"/>${rects}</svg>`;
+}
+
+// Render a barcode block: label + Data Matrix + code text
+function bcBlock(label, code, sub=''){
+ if(!code) return '';
+ return`<div class="bc-block">
+  <div class="bc-matrix">${dmBarcode(code)}</div>
+  <div class="bc-info">
+   <div class="bc-label">${label}</div>
+   <div class="bc-code">${code}</div>
+   ${sub?`<div class="bc-sub">${sub}</div>`:''}
+  </div>
+ </div>`;
+}
+
+// ── DETAIL VIEW ───────────────────────────────────────────────────────────
+function openDetail(id){
+ aSid=id;
+ const s=SITES.find(x=>x.id===id);
+ const isA=s.method==='Active',isC=s.method==='Contact';
+ const isPend=s.status==='pending';
+ const EL={started_early:'Started Early',started_late:'Started Late',ended_early:'Ended Early',ended_late:'Ended Late'};
+ // Status pill
+ let pill='';
+ if(s.status==='excursion')pill=`<div class="pill p-exc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Excursion</div>`;
+ else if(s.status==='inprogress')pill=`<div class="pill p-run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>In Progress — since ${s.st}</div>`;
+ else if(s.status==='done')pill=`<div class="pill p-done"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>Completed · ${s.st} → ${s.et} · ${dur(s.st,s.et)}</div>`;
+ else pill=`<div class="pill p-pend"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Not Started · ${s.plannedStart}–${s.plannedEnd}</div>`;
+ // Info bar
+ const methodLabel=isA?'Active Air':isC?'Contact':'Passive Air';
+ let ibar=`<div class="ibar">
+  <div class="ibi"><div class="ibi-lbl">Site</div><div class="ibi-val">${s.site}</div></div>
+  <div class="ibi"><div class="ibi-lbl">Line</div><div class="ibi-val">${s.line}</div></div>
+  <div class="ibi"><div class="ibi-lbl">Method</div><div class="ibi-val">${methodLabel}</div></div>
+  <div class="ibi"><div class="ibi-lbl">Grade</div><div class="ibi-val">${s.grade}</div></div>
+  ${isA?`<div class="ibi"><div class="ibi-lbl">Volume</div><div class="ibi-val">${s.vol}L @ ${s.flow} L/min</div></div>`:''}
+ </div>`;
+
+ // ── PENDING: show scan workspace ─────────────────────────────────────────
+ let body='';
+ if(isPend){
+  if(isC){
+   // Contact: type + dish only, no barcode needed
+   body=`
+    <div class="det-section-lbl">Sample Type</div>
+    <div class="ttog" style="margin-bottom:16px;">
+     <button class="tbtn ${s.type==='plate'?'sel':''}" id="dt-plate" onclick="setDetailType('plate')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Plate</button>
+     <button class="tbtn ${s.type==='swab'?'sel':''}" id="dt-swab" onclick="setDetailType('swab')"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="5" r="3"/></svg>Swab</button>
+    </div>
+    <div class="det-section-lbl">Dish / Swab ID</div>
+    <div class="det-scan-row">
+     <input id="det-dish" class="det-scan-input" type="text" placeholder="Scan dish or swab barcode" value="${s.dish||''}" onblur="saveDetField('dish')" onkeydown="if(event.key==='Enter'){saveDetField('dish');}">
+     <button class="det-scan-btn" onclick="activateDet('det-dish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.dish?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.dish}</span>`:''}
+    </div>
+    <button class="abtn start" style="margin-top:20px;" onclick="detCStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start &amp; Begin Timer</button>`;
+  } else if(isA){
+   body=`
+    <div class="det-section-lbl">Device ID</div>
+    <div class="det-scan-row">
+     <input id="det-dev" class="det-scan-input" type="text" placeholder="Scan device ID" value="${s.dev||''}" onblur="saveDetField('dev')" onkeydown="if(event.key==='Enter'){saveDetField('dev');}">
+     <button class="det-scan-btn" onclick="activateDet('det-dev')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.dev?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.dev}${DEVDB[s.dev]?' · '+DEVDB[s.dev].exp:''}</span>`:''}
+    </div>
+    <div class="det-section-lbl">Petri Dish ID</div>
+    <div class="det-scan-row">
+     <input id="det-dish" class="det-scan-input" type="text" placeholder="Scan petri dish barcode" value="${s.dish||''}" onblur="saveDetField('dish')" onkeydown="if(event.key==='Enter'){saveDetField('dish');}">
+     <button class="det-scan-btn" onclick="activateDet('det-dish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.dish?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.dish}</span>`:''}
+    </div>
+    <div class="det-section-lbl">Site Barcode</div>
+    <div class="det-scan-row">
+     <input id="det-site" class="det-scan-input" type="text" placeholder="Confirm site barcode" value="${s.asite||''}" onblur="saveDetField('site')" onkeydown="if(event.key==='Enter'){saveDetField('site');}">
+     <button class="det-scan-btn" onclick="activateDet('det-site')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.asite?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.asite}</span>`:''}
+    </div>
+    <button class="abtn start" style="margin-top:20px;" onclick="detAStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Device</button>`;
+  } else {
+   // Passive
+   body=`
+    <div class="det-section-lbl">Petri Dish ID</div>
+    <div class="det-scan-row">
+     <input id="det-dish" class="det-scan-input" type="text" placeholder="Scan petri dish barcode" value="${s.dish||''}" onblur="saveDetField('dish')" onkeydown="if(event.key==='Enter'){saveDetField('dish');}">
+     <button class="det-scan-btn" onclick="activateDet('det-dish')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.dish?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.dish}</span>`:''}
+    </div>
+    <div class="det-section-lbl">Site Barcode</div>
+    <div class="det-scan-row">
+     <input id="det-site" class="det-scan-input" type="text" placeholder="Confirm site barcode" value="${s.asite||''}" onblur="saveDetField('site')" onkeydown="if(event.key==='Enter'){saveDetField('site');}">
+     <button class="det-scan-btn" onclick="activateDet('det-site')"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>Scan</button>
+     ${s.asite?`<span class="det-ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s.asite}</span>`:''}
+    </div>
+    <button class="abtn start" style="margin-top:20px;" onclick="detPStart()"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Sampling</button>`;
+  }
+
+ // ── RUNNING / DONE: show recorded data ─────────────────────────────────
+ } else {
+  let rows='';
+  if(isC){
+   rows=`${bcBlock('Dish / Swab ID',s.dish,'Contact Sample')}
+    <div class="sptbl" style="margin-top:10px;">
+     <div class="sphd">Sample</div>
+     <div class="spr"><div class="spr-lbl">Site</div><div class="fv vl">${s.site}</div></div>
+     <div class="spr"><div class="spr-lbl">Area</div><div class="fv vl">${s.area}</div></div>
+     <div class="spr"><div class="spr-lbl">Type</div><div class="fv ${s.type?'vl':'em'}">${s.type?cap(s.type):'—'}</div></div>
+     <div class="sphd">Timing</div>
+     <div class="spr"><div class="spr-lbl">Start</div><div class="fv ${s.st?'vl':'em'}">${s.st||'—'}</div></div>
+     <div class="spr"><div class="spr-lbl">End</div><div class="fv ${s.et?'gr':'em'}">${s.et||(s.st?'Running…':'—')}</div></div>
+     ${s.st&&s.et?`<div class="spr"><div class="spr-lbl">Duration</div><div class="fv gr">${dur(s.st,s.et)}</div></div>`:''}
+    </div>`;
+  } else if(isA){
+   rows=`${bcBlock('Petri Dish ID',s.dish,'Active Air Sampling')}
+    ${bcBlock('Device ID',s.dev,s.lc?'Calibrated '+s.lc+(s.cst==='warn'?' · ⚠ Expiring soon':''):'')}
+    <div class="sptbl" style="margin-top:10px;">
+     <div class="sphd">Sample</div>
+     <div class="spr"><div class="spr-lbl">Air volume</div><div class="fv vl">${s.vol}L @ ${s.flow} L/min</div></div>
+     <div class="spr"><div class="spr-lbl">Calib expiry</div><div class="fv ${s.cst==='valid'?'gr':s.cst==='warn'?'am':'em'}">${s.cexp||'—'}</div></div>
+     <div class="sphd">Timing${s.excT?' — Excursion':''}</div>
+     ${s.excT?`<div class="spr"><div class="spr-lbl">Reason</div><div class="fv rd">${EL[s.excT]}</div></div>`:''}
+     <div class="spr"><div class="spr-lbl">Start</div><div class="fv ${s.st?'vl':'em'}">${s.st||'—'}</div></div>
+     <div class="spr"><div class="spr-lbl">End</div><div class="fv ${s.et?'gr':'em'}">${s.et||(s.st?'Running…':'—')}</div></div>
+    </div>`;
+  } else {
+   rows=`${bcBlock('Petri Dish ID',s.dish,'Passive Air Sampling')}
+    ${bcBlock('Site Barcode',s.asite,s.site)}
+    <div class="sptbl" style="margin-top:10px;">
+     <div class="sphd">Timing${s.excT?' — Excursion':''}</div>
+     ${s.excT?`<div class="spr"><div class="spr-lbl">Reason</div><div class="fv rd">${EL[s.excT]}</div></div>`:''}
+     <div class="spr"><div class="spr-lbl">Start</div><div class="fv ${s.st?'vl':'em'}">${s.st||'—'}</div></div>
+     <div class="spr"><div class="spr-lbl">End</div><div class="fv ${s.et?'gr':'em'}">${s.et||(s.st?'Running…':'—')}</div></div>
+    </div>`;
+  }
+  let aBtn='';
+  if(s.status==='inprogress'){
+   if(isC)aBtn=`<button class="abtn end" style="margin-top:12px;" onclick="openCEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Stop &amp; Record End Time</button>`;
+   else if(isA)aBtn=`<button class="abtn end" style="margin-top:12px;" onclick="openAEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Stop &amp; Record End Time</button>`;
+   else aBtn=`<button class="abtn end" style="margin-top:12px;" onclick="openPEnd('${s.id}')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Stop &amp; Record End Time</button>`;
+  }
+  body=`<div class="sptbl">${rows}</div>${aBtn}`;
+ }
+
+ document.getElementById('detail-body').innerHTML=pill+ibar+body;
+ go('s2');
+}
+
+// ── DETAIL PAGE HELPERS ───────────────────────────────────────────────────
+function activateDet(id){
+ const el=document.getElementById(id);if(!el)return;
+ el.classList.add('scanning');el.focus();
+ const stop=()=>{el.classList.remove('scanning');el.removeEventListener('input',stop);el.removeEventListener('blur',stop);};
+ el.addEventListener('input',stop);el.addEventListener('blur',stop);
+}
+function saveDetField(field){
+ const s=SITES.find(x=>x.id===aSid);if(!s)return;
+ const el=document.getElementById('det-'+field);if(!el)return;
+ const val=el.value.trim();if(!val)return;
+ if(field==='dish')s.dish=val;
+ if(field==='site')s.asite=val;
+ if(field==='dev'){
+  s.dev=val;
+  const d=DEVDB[val];
+  if(d){s.lc=d.lc;s.cexp=d.exp;s.cst=d.st;}
+ }
+ save();
+ // Refresh detail in place
+ openDetail(aSid);
+}
+function setDetailType(type){
+ const s=SITES.find(x=>x.id===aSid);if(!s)return;
+ s.type=type;save();openDetail(aSid);
+}
+function detPStart(){
+ const s=SITES.find(x=>x.id===aSid);
+ if(!s.dish){activateDet('det-dish');toast('Scan Dish ID first');return;}
+ s.am='Passive Air Sampling';s.st=tnow();s.status='inprogress';
+ save();renderList();go('s1');toast('Started — '+s.site);
+}
+function detAStart(){
+ const s=SITES.find(x=>x.id===aSid);
+ if(!s.dev){activateDet('det-dev');toast('Scan Device ID first');return;}
+ if(!s.dish){activateDet('det-dish');toast('Scan Dish ID first');return;}
+ s.am='Active Air Sampling';s.st=tnow();s.status='inprogress';
+ save();renderList();go('s1');toast('Device started — '+s.site);
+}
+function detCStart(){
+ const s=SITES.find(x=>x.id===aSid);
+ if(!s.type){toast('Select sample type first');return;}
+ if(!s.dish){activateDet('det-dish');toast('Scan Dish ID first');return;}
+ s.st=tnow();s.status='inprogress';
+ save();renderList();go('s1');toast('Contact sample started');
+}
+
+// ── PASSIVE MODALS ────────────────────────────────────────────────────────
+function openPStart(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mps-t').textContent='Start — '+s.site;document.getElementById('mps-s').textContent=s.line+' · '+s.grade;document.getElementById('i-dish').value='';document.getElementById('i-site').value='';document.getElementById('m-ps').classList.add('on');}
+function cfmPStart(){const d=document.getElementById('i-dish').value.trim();if(!d){scan('i-dish');return;}const s=SITES.find(x=>x.id===aSid);s.dish=d;s.asite=document.getElementById('i-site').value.trim()||s.site;s.am='Passive Air Sampling';s.st=tnow();s.status='inprogress';closeM('m-ps');save();renderList();toast('Timer started — '+s.site);}
+function openPEnd(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mpe-t').textContent='End — '+s.site;document.getElementById('mpe-s').textContent='Dish: '+s.dish;document.getElementById('pe-elapsed').textContent=dur(s.st,tnow());document.getElementById('m-pe').classList.add('on');}
+function cfmPEnd(){const s=SITES.find(x=>x.id===aSid);s.et=tnow();s.status='done';closeM('m-pe');save();renderList();toast('End time recorded');}
+
+// ── ACTIVE MODALS ─────────────────────────────────────────────────────────
+function selCalib(v){aCalib=v;if(v==='valid'){document.getElementById('cb-valid').className='cbtn sel valid';document.getElementById('cb-warn').className='cbtn warn';}else{document.getElementById('cb-valid').className='cbtn valid';document.getElementById('cb-warn').className='cbtn sel warn';}}
+function openAStart(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mas-t').textContent='Set Up — '+s.site;document.getElementById('mas-s').textContent=s.line+' · '+s.vol+'L @ '+s.flow+'L/min';['i-dev','i-lastc','i-expiry','i-adish','i-asite'].forEach(i=>document.getElementById(i).value='');document.getElementById('i-vol').value=s.vol||1000;document.getElementById('dev-found').classList.remove('on');selCalib('valid');document.getElementById('m-as').classList.add('on');}
+function cfmAStart(){const dev=document.getElementById('i-dev').value.trim(),dish=document.getElementById('i-adish').value.trim();if(!dev){scan('i-dev');return;}if(!dish){scan('i-adish');return;}const s=SITES.find(x=>x.id===aSid);s.dev=dev;s.dish=dish;s.lc=document.getElementById('i-lastc').value.trim();s.cexp=document.getElementById('i-expiry').value.trim();s.cst=aCalib;s.asite=document.getElementById('i-asite').value.trim()||s.site;s.vol=parseInt(document.getElementById('i-vol').value)||s.vol;s.am='Active Air Sampling';s.st=tnow();s.status='inprogress';closeM('m-as');save();renderList();toast('Device started — '+s.site);}
+function openAEnd(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mae-t').textContent='Stop — '+s.site;document.getElementById('mae-s').textContent='Device: '+s.dev+' · Dish: '+s.dish;document.getElementById('ae-elapsed').textContent=dur(s.st,tnow());document.getElementById('m-ae').classList.add('on');}
+function cfmAEnd(){const s=SITES.find(x=>x.id===aSid);s.et=tnow();s.status='done';closeM('m-ae');save();renderList();toast('Device stopped');}
+
+// ── CONTACT MODALS ────────────────────────────────────────────────────────
+function selCType(v){aCType=v;document.getElementById('tb-plate').className='tbtn'+(v==='plate'?' sel':'');document.getElementById('tb-swab').className='tbtn'+(v==='swab'?' sel':'');}
+function openCStart(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mcs-t').textContent='Log — '+s.site;document.getElementById('mcs-s').textContent=s.line+' · '+s.area;document.getElementById('i-cdish').value='';selCType('plate');document.getElementById('m-cs').classList.add('on');}
+function cfmCStart(){const d=document.getElementById('i-cdish').value.trim();if(!d){scan('i-cdish');return;}const s=SITES.find(x=>x.id===aSid);s.dish=d;s.type=aCType;s.st=tnow();s.status='inprogress';closeM('m-cs');save();renderList();toast('Contact sample started');}
+function openCEnd(id){aSid=id;const s=SITES.find(x=>x.id===id);document.getElementById('mce-t').textContent='End — '+s.site;document.getElementById('mce-s').textContent=cap(s.type||'')+' · '+s.dish+' · Started '+s.st;document.getElementById('ce-elapsed').textContent=dur(s.st,tnow());document.getElementById('m-ce').classList.add('on');}
+function cfmCEnd(){const s=SITES.find(x=>x.id===aSid);s.et=tnow();s.status='done';closeM('m-ce');save();renderList();toast('End time recorded');}
+
+// ── ALERTS ────────────────────────────────────────────────────────────────
+function mUntilEnd(s){
+ if(!s.plannedEnd)return 999;
+ const[eh,em]=s.plannedEnd.split(':').map(Number),n=new Date();
+ return(eh*60+em)-(n.getHours()*60+n.getMinutes());
+}
+function upAlert(){
+ const ex=SITES.filter(s=>s.status==='excursion');
+ const nearAll=SITES.filter(s=>s.status==='inprogress'&&mUntilEnd(s)<=15&&mUntilEnd(s)>-60)
+  .sort((a,b)=>mUntilEnd(a)-mUntilEnd(b));
+ // Update Ending Soon tab badge + urgency styling
+ const nearTab=document.getElementById('tab-near');
+ const nearBadge=document.getElementById('tab-near-count');
+ if(nearBadge)nearBadge.textContent=nearAll.length;
+ if(nearTab){
+  nearTab.classList.toggle('has-alerts',nearAll.length>0);
+ }
+ // Refresh near tab content if active
+ if(activeTab==='near')renderNearTab();
+ // Excursion badge
+ const eb=document.getElementById('exc-btn');
+ const ec=document.getElementById('exc-count');
+ if(eb){eb.style.display=ex.length?'flex':'none';}
+ if(ec)ec.textContent=ex.length;
+ const epr=document.getElementById('exc-panel-rows');
+ if(epr)epr.innerHTML=ex.map(s=>`<div class="ap-row" onclick="closeAllPanels();openDetail('${s.id}')"><span class="ap-site">${s.site}</span><span class="ap-badge exc">Excursion</span></div>`).join('');
+ // Keep near-page-list updated if page is open
+ renderNearPage(nearAll);
+}
+
+
+function renderNearPage(sites){
+ const el=document.getElementById('near-page-list');
+ const sub=document.getElementById('near-page-sub');
+ if(!el)return;
+ if(sub)sub.textContent=sites.length+' site'+(sites.length!==1?'s':'')+' approaching or past planned end time';
+ if(!sites.length){
+  el.innerHTML=`<div style="text-align:center;padding:48px 24px;color:var(--t4);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--bd2)" stroke-width="1.5" style="margin:0 auto 12px;display:block;"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg><p style="font-size:14px;">No sites ending soon</p></div>`;
+  return;
+ }
+ const isA=s=>s.method==='Active',isC=s=>s.method==='Contact';
+ el.innerHTML=sites.map(s=>{
+  const m=mUntilEnd(s),isOv=m<0;
+  const stateClass=isOv?'ov':'soon';
+  const label=isOv?'Overdue':m+'m left';
+  let stopFn=isC(s)?`openCEnd('${s.id}')`:isA(s)?`openAEnd('${s.id}'):`:`openPEnd('${s.id}')`;
+  const method=isA(s)?'Active Air':isC(s)?'Contact':'Passive Air';
+  return`<div class="near-site-card ${stateClass}">
+   <div class="nsc-main">
+    <div class="nsc-site">${s.site}</div>
+    <div class="nsc-meta"><span>${s.line}</span><span>${method}</span>${s.dish?`<span>Dish: ${s.dish}</span>`:''}</div>
+    <div class="nsc-time">
+     <span class="nsc-planned">Planned end: ${s.plannedEnd}</span>
+     <span class="nsc-badge ${stateClass}">${label}</span>
+    </div>
+   </div>
+   <div class="nsc-action">
+    <button class="nsc-stop" onclick="${stopFn}">
+     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>Stop
+    </button>
+   </div>
+  </div>`;
+ }).join('');
+}
+
+function toggleExcPanel(){
+ const p=document.getElementById('exc-panel');if(!p)return;
+ const wasOpen=p.classList.contains('on');
+ closeAllPanels();
+ if(!wasOpen)p.classList.add('on');
+}
+function closeAllPanels(){
+ document.querySelectorAll('.alert-panel').forEach(p=>p.classList.remove('on'));
+}
+document.addEventListener('click',e=>{
+ if(!e.target.closest('.alert-wrap'))closeAllPanels();
+});
+
+// ── Set demo ending-soon times relative to NOW ────────────────────────
+(function(){
+ function addMin(m){
+  const n=new Date(Date.now()+m*60000);
+  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+ }
+ const patches={'s3':addMin(9),'a2':addMin(4),'c2':addMin(-6),'b2':addMin(12)};
+ SITES.forEach(s=>{if(patches[s.id])s.plannedEnd=patches[s.id];});
+})();
+
+load();
+renderList();
+// Live tick — update every 60s so time-remaining is always current
+setInterval(()=>{renderList();},60000);
+
+</script>
+</body>
+</html>
